@@ -42,16 +42,22 @@ class RecipesController extends AppController {
 			$this->Recipe->create();
 			$recipe = $this->Recipe->save($this->request->data["Recipe"]);
 			$ingredients = $this->request->data['Ingredient'];
-			foreach ($ingredients as $ingredient) {
-				$ingredient['recipe_id'] = $recipe['Recipe']['id'];
-				$this->Recipe->Ingredient->create();
-				$test = $this->Recipe->Ingredient->save($ingredient);
+			if (!is_null($ingredients))
+			{
+				foreach ($ingredients as $ingredient) {
+					$ingredient['recipe_id'] = $recipe['Recipe']['id'];
+					$this->Recipe->Ingredient->create();
+					$test = $this->Recipe->Ingredient->save($ingredient);
+				}
 			}
 			$directions = $this->request->data['Direction'];
-			foreach ($directions as $direction) {
-				$direction['recipe_id'] = $recipe['Recipe']['id'];
-				$this->Recipe->Direction->create();
-				$test = $this->Recipe->Direction->save($direction);
+			if (!is_null($directions))
+			{
+				foreach ($directions as $direction) {
+					$direction['recipe_id'] = $recipe['Recipe']['id'];
+					$this->Recipe->Direction->create();
+					$test = $this->Recipe->Direction->save($direction);
+				}
 			}
 			if (!empty($recipe)) {
 				$this->Session->setFlash(__('The recipe has been saved'));

@@ -9,6 +9,10 @@ function Ingredient(order, ingredient, amount, optional) {
     self.amount = ko.observable(amount);
     self.optional = ko.observable(optional);
 
+    self.ShowRemove = ko.computed(function() {
+		return self.order() != 0;
+    });
+
 	self.IngredientOrderName = ko.computed(function() {
 	    return GetNamePrefix(self.order) + "[order]";
 	});
@@ -54,6 +58,10 @@ function Direction(direction, order) {
     var self = this;
     self.direction = ko.observable(direction);
     self.order = ko.observable(order);
+
+    self.ShowRemove = ko.computed(function() {
+		return self.order() != 0;
+    });
     
     self.DisplayOrder = ko.computed(function() {
         return self.order() + 1;
@@ -86,12 +94,25 @@ function Direction(direction, order) {
 
 function IngredientsViewModel() {
     var self = this;
-    self.ingredients = ko.observableArray();
+    self.ingredients = ko.observableArray([new Ingredient(0, "", "", false)]);
 
     self.addIngredient = function() {
-        self.ingredients.push(new Ingredient(self.ingredients().length, "", "", false));
+        var txtInsertXIngredients = document.getElementById("txtInsertXIngredients"); 
+    	var numIngredients = txtInsertXIngredients.value;
+    	txtInsertXIngredients.value = "";
+    	
+    	if (isNaN(numIngredients) || numIngredients == "") {
+        	numIngredients = 1;
+    	}
+    	numIngredients = parseInt(numIngredients);
+    	for (var i = 0; i < numIngredients; i++) {
+        	self.ingredients.push(new Ingredient(self.ingredients().length, "", "", false));
+    	}
     }
+    
     self.removeIngredient = function(ingredient) {
+    	if (self.ingredients.peek().length == 1)
+            return;
         self.ingredients.remove(ingredient);
         AfterMove(0, self.ingredients().length - 1, ingredients.peek());
     }
@@ -103,13 +124,25 @@ function IngredientsViewModel() {
 
 function DirectionViewModel() {
     var self = this;
-    self.directions = ko.observableArray();
+    self.directions = ko.observableArray([new Direction("", 0)]); 
     
     self.addDirection = function() {
-        self.directions.push(new Direction("", self.directions().length));
+		var txtInsertXDirections = document.getElementById("txtInsertXDirections");
+    	var numDirections = txtInsertXDirections.value;
+    	txtInsertXDirections.value = "";
+    	
+    	if (isNaN(numDirections) || numDirections == "") {
+    		numDirections = 1;
+    	}
+    	numDirections = parseInt(numDirections);
+    	for (var i = 0; i < numDirections; i++) {
+    		self.directions.push(new Direction("", self.directions().length));
+    	}
     }
     
     self.removeDirection = function(direction) {
+        if (self.directions.peek().length == 1)
+            return;
         self.directions.remove(direction);
         AfterMove(0, self.directions().length - 1, self.directions.peek());
     }
@@ -125,11 +158,14 @@ function AfterMove(min, max, vm) {
     }
 }
 
+var ingredients, directions;
 $(document).ready(function() {
     try
     {
-        ko.applyBindings(new IngredientsViewModel(), document.getElementById('Ingredients'));
-        ko.applyBindings(new DirectionViewModel(), document.getElementById('Directions'));
+        ingredients = new IngredientsViewModel();
+        directions = new DirectionViewModel();
+        ko.applyBindings(ingredients, document.getElementById('Ingredients'));
+        ko.applyBindings(directions, document.getElementById('Directions'));
     }
     catch(ex)
     {
@@ -142,7 +178,7 @@ $this->end();
 ?>
 
 <div class="recipes form">
-	<?php echo $this->Form->create('Recipe'); ?>
+	<?php echo $this->Form->create('Recipe', array('onsubmit'=>'return OnFormSubmit(event);')); ?>
 	<fieldset>
 		<legend>
 			<?php echo __('Add Recipe'); ?>
@@ -156,6 +192,7 @@ $this->end();
 
 	<fieldset id="Ingredients">
 		<legend>The Ingredients</legend>
+		<input type="text" class="number noDecimal" id="txtInsertXIngredients" />
 		<input type="button" data-bind="click: addIngredient"
 			value="Add Ingredient" />
 		<table>
@@ -168,17 +205,24 @@ $this->end();
 				</tr>
 			</thead>
 			<tbody
-				data-bind="sortable : {data: ingredients, afterMove: afterMove}">
+				data-bind="sortable : {connectClass: 'ko_containerIngredients', data: ingredients, afterMove: afterMove}">
 				<tr>
-					<td><input type="hidden"
-						data-bind="value: order, attr: { id: IngredientOrderID, name: IngredientOrderName}"></input><a
-						href="#" data-bind="click: $root.removeIngredient">Remove</a>
+					<td><span data-bind="visible: ShowRemove"> <input type="hidden"
+							data-bind="value: order, attr: { id: IngredientOrderID, name: IngredientOrderName}"></input><a
+							href="#" data-bind="click: $root.removeIngredient">Remove</a>
+					</span>
 					</td>
-					<td><input type="text"
-						data-bind="value: ingredient, attr: { id: IngredientID, name: IngredientName}" />
+					<td>
+						<div class="input text required">
+							<input type="text" required
+								data-bind="value: ingredient, attr: { id: IngredientID, name: IngredientName}" />
+						</div>
 					</td>
-					<td><input type="text"
-						data-bind="value: amount, attr: { id: IngredientAmountID, name: IngredientAmountName}" />
+					<td>
+						<div class="input text required">
+							<input type="text" required
+								data-bind="value: amount, attr: { id: IngredientAmountID, name: IngredientAmountName}" />
+						</div>
 					</td>
 					<td><input type="checkbox"
 						data-bind="checked: optional, attr: { id: IngredientOptionalID, name: IngredientOptionalName}" />
@@ -189,6 +233,7 @@ $this->end();
 	</fieldset>
 	<fieldset id="Directions">
 		<legend>The Directions</legend>
+		<input type="text" class="number noDecimal" id="txtInsertXDirections" />
 		<input type="button" data-bind="click: addDirection"
 			value="Add Direction" />
 		<table>
@@ -200,15 +245,21 @@ $this->end();
 				</tr>
 			</thead>
 			<tbody
-				data-bind="sortable : {data: directions, afterMove: afterMove}">
+				data-bind="sortable : {connectClass: 'ko_containerDirections', data: directions, afterMove: afterMove}">
 				<tr>
-					<td><span
-						data-bind="text: DisplayOrder, attr: { id: DirectionOrderID, name: DirectionOrderName}"></span>
+					<td><span data-bind="text: DisplayOrder"></span> <input
+						type="hidden"
+						data-bind="value: order, attr: { id: DirectionOrderID, name: DirectionOrderName}"></input>
 					</td>
-					<td><input type="text"
-						data-bind="value: direction, attr: {id: DirectionID, name: DirectionName}" />
+					<td>
+						<div class="input text required">
+							<input type="text" required
+								data-bind="value: direction, attr: {id: DirectionID, name: DirectionName}" />
+						</div>
 					</td>
-					<td><a href="#" data-bind="click: $root.removeDirection">Remove</a>
+					<td><span data-bind="visible: ShowRemove"> <a href="#"
+							data-bind="click: $root.removeDirection">Remove</a>
+					</span>
 					</td>
 				</tr>
 			</tbody>

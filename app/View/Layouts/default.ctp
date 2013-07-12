@@ -38,6 +38,31 @@ echo $this->Html->script('jquery-2.0.3.min');
 echo $this->Html->script('jquery-ui.min');
 echo $this->Html->script('knockout-2.2.1');
 echo $this->Html->script('knockout-sortable.min');
+?>
+<script type="text/javascript">
+$(document).ready(function() {
+	var inputNumber = $("input[type=text].number");
+	inputNumber.bind("keypress", function(arg) {
+		if (arg.which == 8) // the delete charater;
+			return true;
+		var key = String.fromCharCode(arg.charCode ? arg.charCode : arg.keyCode);
+		var validOnce = this.classList.contains("noDecimal") ? "" : ".";
+		var valid = "0123456789" + validOnce;
+
+		if (valid.indexOf(key) == -1)
+			return false;
+
+		var text = this.value;
+		for (var i = 0 ; i < validOnce.length; i++)
+		{
+			var charAti = validOnce.charAt(i);
+			if (text.indexOf(charAti) != -1 && key == charAti)
+				return false;
+		}		
+	});
+});
+</script>
+<?php 
 //Get the on page spacific javascript
 echo $this->fetch('pageSpecific');
 ?>
