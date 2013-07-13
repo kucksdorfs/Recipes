@@ -43,10 +43,10 @@ echo $this->Html->script('knockout-sortable.min');
 $(document).ready(function() {
 	var inputNumber = $("input[type=text].number");
 	inputNumber.bind("keypress", function(arg) {
-		if (arg.which == 8) // the delete charater;
+		if (arg.which == 8 || arg.which == 0) // the delete charater;
 			return true;
 		var key = String.fromCharCode(arg.charCode ? arg.charCode : arg.keyCode);
-		var validOnce = this.classList.contains("noDecimal") ? "" : ".";
+		var validOnce = $(this).hasClass("noDecimal") ? "" : ".";
 		var valid = "0123456789" + validOnce;
 
 		if (valid.indexOf(key) == -1)

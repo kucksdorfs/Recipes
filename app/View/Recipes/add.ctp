@@ -1,8 +1,9 @@
 <?php 
 $this->start('pageSpecific');
+echo $this->Html->script('AddEdit');
 ?>
 <script type="text/javascript">
-function Ingredient(order, ingredient, amount, optional) {
+/*function Ingredient(order, ingredient, amount, optional) {
     var self = this;
     self.order = ko.observable(order);
     self.ingredient = ko.observable(ingredient);
@@ -92,12 +93,12 @@ function Direction(direction, order) {
     }
 }
 
-function IngredientsViewModel() {
+function IngredientsViewModel(txtAddNumIngredients) {
     var self = this;
     self.ingredients = ko.observableArray([new Ingredient(0, "", "", false)]);
+    self.txtInsertXIngredients = txtAddNumIngredients;
 
     self.addIngredient = function() {
-        var txtInsertXIngredients = document.getElementById("txtInsertXIngredients"); 
     	var numIngredients = txtInsertXIngredients.value;
     	txtInsertXIngredients.value = "";
     	
@@ -118,16 +119,16 @@ function IngredientsViewModel() {
     }
     
     self.afterMove = function(arg) {
-        AfterMove((arg.sourceIndex < arg.targetIndex ? arg.sourceIndex : arg.targetIndex), (arg.sourceIndex >= arg.targetIndex ? arg.sourceIndex : arg.targetIndex), self.directions.peek());
+        AfterMove((arg.sourceIndex < arg.targetIndex ? arg.sourceIndex : arg.targetIndex), (arg.sourceIndex >= arg.targetIndex ? arg.sourceIndex : arg.targetIndex), self.ingredients.peek());
     }
 }
 
-function DirectionViewModel() {
+function DirectionViewModel(txtAddNumIngredients) {
     var self = this;
     self.directions = ko.observableArray([new Direction("", 0)]); 
+    self.txtInsertXDirections =  txtAddNumIngredients;
     
     self.addDirection = function() {
-		var txtInsertXDirections = document.getElementById("txtInsertXDirections");
     	var numDirections = txtInsertXDirections.value;
     	txtInsertXDirections.value = "";
     	
@@ -156,14 +157,14 @@ function AfterMove(min, max, vm) {
     while (min <= max) {
         vm[min].order(min++);
     }
-}
+}*/
 
 var ingredients, directions;
 $(document).ready(function() {
     try
     {
-        ingredients = new IngredientsViewModel();
-        directions = new DirectionViewModel();
+        ingredients = new IngredientsViewModel(document.getElementById('txtInsertXIngredients'));
+        directions = new DirectionViewModel(document.getElementById('txtInsertXDirections'));
         ko.applyBindings(ingredients, document.getElementById('Ingredients'));
         ko.applyBindings(directions, document.getElementById('Directions'));
     }
