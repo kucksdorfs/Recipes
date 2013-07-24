@@ -40,6 +40,7 @@ echo $this->Html->script('knockout-2.2.1');
 echo $this->Html->script('knockout-sortable.min');
 ?>
 <script type="text/javascript">
+var webRoot = "http://<?php echo $_SERVER['HTTP_HOST'] . $this->webroot ;?>";
 $(document).ready(function() {
 	var inputNumber = $("input[type=text].number");
 	inputNumber.bind("keypress", function(arg) {

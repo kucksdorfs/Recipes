@@ -4,26 +4,26 @@ App::uses('AppController', 'Controller');
  * Recipes Controller
  *
  * @property Recipe $Recipe
- */
+*/
 class RecipesController extends AppController {
 
-/**
- * index method
- *
- * @return void
- */
+	/**
+	 * index method
+	 *
+	 * @return void
+	 */
 	public function index() {
 		$this->Recipe->recursive = 0;
 		$this->set('recipes', $this->paginate());
 	}
 
-/**
- * view method
- *
- * @throws NotFoundException
- * @param string $id
- * @return void
- */
+	/**
+	 * view method
+	 *
+	 * @throws NotFoundException
+	 * @param string $id
+	 * @return void
+	 */
 	public function view($id = null) {
 		if (!$this->Recipe->exists($id)) {
 			throw new NotFoundException(__('Invalid recipe'));
@@ -32,22 +32,21 @@ class RecipesController extends AppController {
 		$this->set('recipe', $this->Recipe->find('first', $options));
 	}
 
-/**
- * add method
- *
- * @return void
- */
+	/**
+	 * add method
+	 *
+	 * @return void
+	 */
 	public function add() {
 		if ($this->request->is('post')) {
 			$this->Recipe->create();
 			$recipe = $this->Recipe->save($this->request->data["Recipe"]);
 			$ingredients = $this->request->data['Ingredient'];
-			if (!is_null($ingredients))
-			{
+			if (!is_null($ingredients)) {
 				foreach ($ingredients as $ingredient) {
 					$ingredient['recipe_id'] = $recipe['Recipe']['id'];
 					$this->Recipe->Ingredient->create();
-					$test = $this->Recipe->Ingredient->save($ingredient);
+					$this->Recipe->Ingredient->save($ingredient);
 				}
 			}
 			$directions = $this->request->data['Direction'];
@@ -56,7 +55,7 @@ class RecipesController extends AppController {
 				foreach ($directions as $direction) {
 					$direction['recipe_id'] = $recipe['Recipe']['id'];
 					$this->Recipe->Direction->create();
-					$test = $this->Recipe->Direction->save($direction);
+					$this->Recipe->Direction->save($direction);
 				}
 			}
 			if (!empty($recipe)) {
@@ -68,19 +67,42 @@ class RecipesController extends AppController {
 		}
 	}
 
-/**
- * edit method
- *
- * @throws NotFoundException
- * @param string $id
- * @return void
- */
+	/**
+	 * edit method
+	 *
+	 * @throws NotFoundException
+	 * @param string $id
+	 * @return void
+	 */
 	public function edit($id = null) {
 		if (!$this->Recipe->exists($id)) {
 			throw new NotFoundException(__('Invalid recipe'));
 		}
 		if ($this->request->is('post') || $this->request->is('put')) {
-			if ($this->Recipe->save($this->request->data)) {
+			$recipe = $this->Recipe->save($this->request->data['Recipe']);
+			if ($recipe) {
+				$ingredients = $this->request->data['Ingredient'];
+				if (!is_null($ingredients)) {
+					foreach ($ingredients as $ingredient) {
+						$ingredient['recipe_id'] = $recipe['Recipe']['id'];
+						if (!array_key_exists('optional', $ingredient)) {
+							$ingredient['optional'] = 0;
+						}
+						
+						$test = $this->Recipe->Ingredient->save($ingredient);
+					}
+				}
+				$directions = $this->request->data['Direction'];
+				if (!is_null($directions)) {
+					foreach ($directions as $direction) {
+						$direction['recipe_id'] = $recipe['Recipe']['id'];
+						if (strlen($direction['id']) == 0) {
+							$this->Recipe->Direction->create();
+						}
+						$this->Recipe->Direction->save($direction);
+					}
+				}
+
 				$this->Session->setFlash(__('The recipe has been saved'));
 				$this->redirect(array('action' => 'index'));
 			} else {
@@ -92,13 +114,13 @@ class RecipesController extends AppController {
 		}
 	}
 
-/**
- * delete method
- *
- * @throws NotFoundException
- * @param string $id
- * @return void
- */
+	/**
+	 * delete method
+	 *
+	 * @throws NotFoundException
+	 * @param string $id
+	 * @return void
+	 */
 	public function delete($id = null) {
 		$this->Recipe->id = $id;
 		if (!$this->Recipe->exists()) {

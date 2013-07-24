@@ -40,7 +40,7 @@ class Recipe extends AppModel {
 			'dependent' => false,
 			'conditions' => '',
 			'fields' => '',
-			'order' => '',
+			'order' => 'order',
 			'limit' => '',
 			'offset' => '',
 			'exclusive' => '',
@@ -61,8 +61,4 @@ class Recipe extends AppModel {
 			'counterQuery' => ''
 		)
 	);
-	
-	function afterSave($created) {
-		$i = 0;	
-	}
 }

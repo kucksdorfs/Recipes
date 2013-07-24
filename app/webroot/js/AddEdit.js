@@ -1,47 +1,57 @@
-function Ingredient(order, ingredient, amount, optional) {
+function Ingredient(order, ingredient, amount, optional, uniqueID) {
 	var self = this;
 	self.order = ko.observable(order);
 	self.ingredient = ko.observable(ingredient);
 	self.amount = ko.observable(amount);
 	self.optional = ko.observable(optional);
+	self.uniqueID = uniqueID;
 
 	self.ShowRemove = ko.computed(function() {
 		return self.order() != 0;
 	});
 
-	self.IngredientOrderName = ko.computed(function() {
+	//Name fields
+	self.IngredientName_ID = ko.computed(function() {
+		return GetNamePrefix(self.order) + "[id]";
+	});
+	self.IngredientName_Order = ko.computed(function() {
 		return GetNamePrefix(self.order) + "[order]";
 	});
-
-	self.IngredientName = ko.computed(function() {
+	
+	self.IngredientName_Ingredient = ko.computed(function() {
 		return GetNamePrefix(self.order) + "[ingredient]";
 	});
-
-	self.IngredientAmountName = ko.computed(function() {
+	
+	self.IngredientName_Amount = ko.computed(function() {
 		return GetNamePrefix(self.order) + "[amount]";
 	});
-
-	self.IngredientOptionalName = ko.computed(function() {
+	
+	self.IngredientName_Optional = ko.computed(function() {
 		return GetNamePrefix(self.order) + "[optional]";
 	});
 
 	function GetNamePrefix(id) {
 		return "data[Ingredient][" + id().toString() + "]";
 	}
-
-	self.IngredientOrderID = ko.computed(function() {
+	
+	//ID fields
+	self.IngredientID_ID = ko.computed(function() {
+		return GetIDPrefix(self.order) + "ID"
+	});
+	
+	self.IngredientID_Order = ko.computed(function() {
 		return GetIDPrefix(self.order) + "Order";
 	});
 
-	self.IngredientID = ko.computed(function() {
+	self.IngredientID_Ingredient = ko.computed(function() {
 		return GetIDPrefix(self.order) + "Ingredient";
 	});
 
-	self.IngredientAmountID = ko.computed(function() {
+	self.IngredientID_Amount = ko.computed(function() {
 		return GetIDPrefix(self.order) + "Amount";
 	});
 
-	self.IngredientOptionalID = ko.computed(function() {
+	self.IngredientID_Optional = ko.computed(function() {
 		return GetIDPrefix(self.order) + "Optional";
 	});
 
@@ -50,10 +60,11 @@ function Ingredient(order, ingredient, amount, optional) {
 	}
 }
 
-function Direction(direction, order) {
+function Direction(direction, order, uniqueID) {
 	var self = this;
 	self.direction = ko.observable(direction);
 	self.order = ko.observable(order);
+	self.uniqueID = uniqueID;
 
 	self.ShowRemove = ko.computed(function() {
 		return self.order() != 0;
@@ -63,11 +74,16 @@ function Direction(direction, order) {
 		return self.order() + 1;
 	});
 
-	self.DirectionName = ko.computed(function() {
+	//Name fields
+	self.DirectionsName_ID = ko.computed(function() {
+		return GetNamePrefix(self.order) + "[id]";
+	});
+	
+	self.DirectionName_Direction = ko.computed(function() {
 		return GetNamePrefix(self.order) + "[direction]";
 	});
 
-	self.DirectionOrderName = ko.computed(function() {
+	self.DirectionName_Order = ko.computed(function() {
 		return GetNamePrefix(self.order) + "[order]";
 	});
 
@@ -75,11 +91,16 @@ function Direction(direction, order) {
 		return "data[Direction][" + id().toString() + "]";
 	}
 
-	self.DirectionID = ko.computed(function() {
+	//ID fields
+	self.DirectionsID_ID = ko.computed(function() {
+		return GetIDPrefix(self.order) + "ID";
+	});
+	
+	self.DirectionID_Direction = ko.computed(function() {
 		return GetIDPrefix(self.order) + "Direction";
 	});
 
-	self.DirectionOrderID = ko.computed(function() {
+	self.DirectionID_Order = ko.computed(function() {
 		return GetIDPrefix(self.order) + "Order";
 	});
 
@@ -88,14 +109,23 @@ function Direction(direction, order) {
 	}
 }
 
-function IngredientsViewModel(txtAddNumIngredients) {
+function IngredientsViewModel(txtAddNumIngredients, previousIngredients) {
 	var self = this;
-	self.ingredients = ko.observableArray([ new Ingredient(0, "", "", false) ]);
+	self.ingredients = ko.observableArray();
 	self.txtInsertXIngredients = txtAddNumIngredients;
+	
+	if (!previousIngredients) {
+		self.ingredients.push(new Ingredient(self.ingredients.length, "", "", false));
+	}
+	else {
+		for (var i = 0; i < previousIngredients.length; i++) {
+			self.ingredients.push(new Ingredient(i, previousIngredients[i]["Ingredient"], previousIngredients[i]["Amount"], previousIngredients[i]["Optional"], previousIngredients[i]["ID"]));
+		}
+	}
 
 	self.addIngredient = function() {
-		var numIngredients = txtInsertXIngredients.value;
-		txtInsertXIngredients.value = "";
+		var numIngredients = self.txtInsertXIngredients.value;
+		self.txtInsertXIngredients.value = "";
 
 		if (isNaN(numIngredients) || numIngredients == "") {
 			numIngredients = 1;
@@ -108,10 +138,24 @@ function IngredientsViewModel(txtAddNumIngredients) {
 	};
 
 	self.removeIngredient = function(ingredient) {
+		var okToRemove = true;
 		if (self.ingredients.peek().length == 1)
 			return;
+		if (!!ingredient.uniqueID) {
+			okToRemove = false;
+			$.ajax({
+				url: webRoot + '/Ingredients/delete/' + ingredient.uniqueID,
+				type: 'POST',
+				async: false,
+				complete: function(jqXHR, textStatus) {
+					okToRemove = (jqXHR.status == 200);
+				}
+			});
+		}
+		if (!okToRemove)
+			return;
 		self.ingredients.remove(ingredient);
-		AfterMove(0, self.ingredients().length - 1, ingredients.peek());
+		AfterMove(0, self.ingredients().length - 1, self.ingredients.peek());
 	};
 
 	self.afterMove = function(arg) {
@@ -122,14 +166,23 @@ function IngredientsViewModel(txtAddNumIngredients) {
 	};
 }
 
-function DirectionViewModel(txtAddNumIngredients) {
+function DirectionViewModel(txtAddNumIngredients, previousDirections) {
 	var self = this;
-	self.directions = ko.observableArray([ new Direction("", 0) ]);
+	self.directions = ko.observableArray();
 	self.txtInsertXDirections = txtAddNumIngredients;
+	
+	if (!previousDirections) {
+		self.directions.push(new Direction("", 0));
+	}
+	else {
+		for (var i = 0; i < previousDirections.length; i++) {
+			self.directions.push(new Direction(previousDirections[i]["Direction"], i, previousDirections[i]["ID"]));
+		}
+	}
 
 	self.addDirection = function() {
-		var numDirections = txtInsertXDirections.value;
-		txtInsertXDirections.value = "";
+		var numDirections = self.txtInsertXDirections.value;
+		self.txtInsertXDirections.value = "";
 
 		if (isNaN(numDirections) || numDirections == "") {
 			numDirections = 1;
@@ -141,8 +194,23 @@ function DirectionViewModel(txtAddNumIngredients) {
 	};
 
 	self.removeDirection = function(direction) {
+		var okToRemove = true;
 		if (self.directions.peek().length == 1)
 			return;
+		if (!!direction.uniqueID) {
+			okToRemove = false;
+			$.ajax({
+				url: webRoot + '/Directions/delete/' + direction.uniqueID,
+				type: 'POST',
+				async: false,
+				complete: function(jqXHR, textStatus) {
+					okToRemove = (jqXHR.status == 200);
+				}
+			});
+		}
+		if (!okToRemove)
+			return;
+
 		self.directions.remove(direction);
 		AfterMove(0, self.directions().length - 1, self.directions.peek());
 	};

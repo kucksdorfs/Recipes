@@ -1,25 +1,49 @@
-<div class="recipes form">
-<?php echo $this->Form->create('Recipe'); ?>
-	<fieldset>
-		<legend><?php echo __('Edit Recipe'); ?></legend>
-	<?php
-		echo $this->Form->input('id');
-		echo $this->Form->input('name');
-		echo $this->Form->input('description');
-		echo $this->Form->input('source');
-	?>
-	</fieldset>
-<?php echo $this->Form->end(__('Submit')); ?>
-</div>
-<div class="actions">
-	<h3><?php echo __('Actions'); ?></h3>
-	<ul>
+<?php 
+$this->start('pageSpecific');
+echo $this->Html->script('AddEdit');
+?>
+<script type="text/javascript">
+// Edit Page
+var ingredients, directions;
+$(document).ready(function() {
+    try
+    {
+        var previousDirections = [<?php 
+                                  	$directions = $this->request->data['Direction'];
+                                  	for ($i = 0; $i < count($directions); $i++) {
+										echo '{"Direction" : "' . $directions[$i]['direction'] . '","ID" : '. $directions[$i]['id'] . '}' . ($i == count($directions) - 1 ? "" : ",");
+									}
+									?>];
+		var previousIngredients = [<?php
+									$ingredients = $this->request->data['Ingredient'];
+									for ($i = 0; $i < count($ingredients); $i++) {
+										echo '{"Ingredient" : "' . $ingredients[$i]['ingredient'] . '", "Amount" : "' . $ingredients[$i]['amount'] . '", "Optional" : ' . ($ingredients[$i]['optional'] ? "true" : "false") . ', "ID" : ' . $ingredients[$i]['id'] . '}' . ($i == count($ingredients) - 1 ? "" : ",");
+									}
+									?>];
+        ingredients = new IngredientsViewModel(document.getElementById('txtInsertXIngredients'), previousIngredients);
+        directions = new DirectionViewModel(document.getElementById('txtInsertXDirections'), previousDirections);
+        ko.applyBindings(ingredients, document.getElementById('Ingredients'));
+        ko.applyBindings(directions, document.getElementById('Directions'));
+    }
+    catch(ex)
+    {
+        console.log(ex.message);
+    }
+});
+</script>
+<?php 
+$this->end();
+?>
 
-		<li><?php echo $this->Form->postLink(__('Delete'), array('action' => 'delete', $this->Form->value('Recipe.id')), null, __('Are you sure you want to delete # %s?', $this->Form->value('Recipe.id'))); ?></li>
-		<li><?php echo $this->Html->link(__('List Recipes'), array('action' => 'index')); ?></li>
-		<li><?php echo $this->Html->link(__('List Directions'), array('controller' => 'directions', 'action' => 'index')); ?> </li>
-		<li><?php echo $this->Html->link(__('New Direction'), array('controller' => 'directions', 'action' => 'add')); ?> </li>
-		<li><?php echo $this->Html->link(__('List Ingredients'), array('controller' => 'ingredients', 'action' => 'index')); ?> </li>
-		<li><?php echo $this->Html->link(__('New Ingredient'), array('controller' => 'ingredients', 'action' => 'add')); ?> </li>
-	</ul>
+<div class="recipes form">
+	<?php
+	echo $this->Form->create('Recipe');
+	echo $this->element('EditRecipes');
+	echo $this->element('EditIngredients');
+	echo $this->element('EditDirections');
+	echo $this->Form->end(__('Submit'));
+	?>
 </div>
+<?php 
+echo $this->element('Sidebar');
+?>
