@@ -19,7 +19,7 @@
 ?>
 <div class="<?php echo $pluralVar; ?> index">
 <h2><?php echo $pluralHumanName; ?></h2>
-<table cellpadding="0" cellspacing="0">
+<table>
 <tr>
 <?php foreach ($scaffoldFields as $_field): ?>
 	<th><?php echo $this->Paginator->sort($_field); ?></th>

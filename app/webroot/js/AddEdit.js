@@ -36,7 +36,7 @@ function Ingredient(order, ingredient, amount, optional, uniqueID) {
 	
 	//ID fields
 	self.IngredientID_ID = ko.computed(function() {
-		return GetIDPrefix(self.order) + "ID"
+		return GetIDPrefix(self.order) + "ID";
 	});
 	
 	self.IngredientID_Order = ko.computed(function() {

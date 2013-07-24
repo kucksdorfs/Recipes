@@ -43,3 +43,4 @@ Get Support!
 [#cakephp](http://webchat.freenode.net/?channels=#cakephp) on irc.freenode.net - Come chat with us, we have cake.
 
 [CakePHP Q & A](http://ask.cakephp.org/) - Ask questions here, all questions welcome
+

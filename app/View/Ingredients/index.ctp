@@ -1,6 +1,6 @@
 <div class="ingredients index">
 	<h2><?php echo __('Ingredients'); ?></h2>
-	<table cellpadding="0" cellspacing="0">
+	<table>
 	<tr>
 			<th><?php echo $this->Paginator->sort('id'); ?></th>
 			<th><?php echo $this->Paginator->sort('recipe_id'); ?></th>
